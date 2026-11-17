@@ -489,7 +489,7 @@ function render(){
   });
   html+='<tr class="emptyrow no-match" id="emptyRow"><td colspan="'+(sel.length+1)+'">검색 결과가 없습니다. 검색어를 줄이거나 <b>‘일치 행만’</b>을 끄면 전체 표가 보입니다.</td></tr>';
   $("#tbody").innerHTML=html;
-  $("#tbl").style.minWidth = (150 + sel.length*220) + "px";
+  $("#tbl").style.minWidth = (150 + sel.length*218) + "px";
 
   // chip + pill states
   chipWrap.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed", state.sel.has(b.dataset.jur)?"true":"false"));
