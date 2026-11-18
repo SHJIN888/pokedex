@@ -137,7 +137,8 @@
     box-shadow:0 5px 0 #ece2cd, 0 10px 22px rgba(120,90,40,.08);
   }
   .padWrap.sel{ box-shadow:0 5px 0 #ece2cd, 0 0 0 3px #8fd4ff, 0 10px 22px rgba(120,90,40,.10); }
-  canvas.gd{ position:absolute; left:0; top:0; z-index:2; pointer-events:none; }
+  canvas.gd{ position:absolute; left:0; top:0; z-index:1; pointer-events:none; }
+  canvas.ink{ position:relative; z-index:2; background:transparent; }
   /* ── tools ──────────────────────────────── */
   .tools{ display:flex; flex-direction:column; gap:9px; padding:10px 14px 2px; flex:0 0 auto; }
   .rowColors{ display:flex; align-items:center; gap:7px; }
@@ -1182,7 +1183,6 @@ function composeSyllable(char, jamoData = hangulCharData) {
     ctx.save();
     ctx.beginPath();
     if(ctx.roundRect){ ctx.roundRect(0, 0, w, h, r); } else { ctx.rect(0,0,w,h); }
-    ctx.fillStyle = '#fff'; ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = '#eaeff7'; ctx.stroke();
     ctx.setLineDash([7, 7]); ctx.lineWidth = 2; ctx.strokeStyle = '#f0f4fa';
     ctx.beginPath();
@@ -1553,7 +1553,7 @@ function composeSyllable(char, jamoData = hangulCharData) {
     var cv = el('canvas'); cv.className = 'ink';
     var gcv = el('canvas'); gcv.className = 'gd';
     var wrap = el('div', 'padWrap');
-    wrap.appendChild(cv); wrap.appendChild(gcv);
+    wrap.appendChild(gcv); wrap.appendChild(cv);
     var pad = {
       cv: cv, ctx: cv.getContext('2d'), gcv: gcv, gctx: gcv.getContext('2d'), wrap: wrap,
       glyph: glyph, strokes: [], guide: prefs.guide, size: 0,
