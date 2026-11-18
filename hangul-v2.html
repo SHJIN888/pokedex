@@ -1489,6 +1489,33 @@ function composeSyllable(char, jamoData = hangulCharData) {
     anim.raf = requestAnimationFrame(frame);
   }
 
+  /* ── 자동 획순 재생 ───────────────────────────
+     처음 들어왔을 때와 글자·친구를 새로 고를 때, 그리고 별표를 받고
+     다음 글자로 넘어갈 때는 ▶ 획순 보기 를 누르지 않아도 한 번 보여 줍니다.
+     💡 힌트 를 꺼 두었으면 저절로 켜지 않고 그냥 지나갑니다.
+     발음 소리는 부르는 쪽에서 이미 먼저 냈으므로, 소리가 시작된 뒤
+     살짝 뒤에 획이 흐르기 시작합니다. */
+  var autoOrder = 0;
+  function cancelAutoOrder(){ if(autoOrder){ clearTimeout(autoOrder); autoOrder = 0; } }
+  function autoPlayOrder(){
+    cancelAutoOrder();
+    if(!prefs.guide) return;
+    var pad = activePadOr();
+    if(pad && !pad.med) pad = null;
+    if(!pad){
+      for(var i=0;i<pads.length;i++){ if(pads[i].med){ pad = pads[i]; break; } }
+      if(pad) setActivePad(pad);
+    }
+    if(!pad) return;
+    autoOrder = setTimeout(function(){
+      autoOrder = 0;
+      if(!prefs.guide || anim || !pad.size) return;
+      if(pads.indexOf(pad) < 0) return;
+      if(totalStrokes() > 0) return;        // 아이가 먼저 쓰기 시작했으면 가만히 둡니다
+      playOrder();
+    }, 300);
+  }
+
   function drawStroke(ctx, s, w, h){
     var pts = s.pts, lw = Math.max(4, s.f * Math.min(w, h));
     ctx.save();
@@ -1523,6 +1550,7 @@ function composeSyllable(char, jamoData = hangulCharData) {
     cv.addEventListener('pointerdown', function(e){
       if(drawing) return;
       e.preventDefault();
+      cancelAutoOrder();
       stopOrder();
       setActivePad(pad);
       drawing = true; pid = e.pointerId;
@@ -1643,6 +1671,7 @@ function composeSyllable(char, jamoData = hangulCharData) {
 
   function selectLetter(i){
     cancelAutoNext();
+    cancelAutoOrder();
     state.li = i; state.mode = 'letter';
     var L = currentLetter();
     speakNow(L.say);
@@ -1659,10 +1688,12 @@ function composeSyllable(char, jamoData = hangulCharData) {
     updateBuddy(L.b, L.c, nameOf(L.b), L.say + ' · ' + L.tag);
     $('#sub').textContent = L.t === 'con' ? '자음 ' + L.c + ' · ' + L.say : '모음 ' + L.c + ' · ' + L.say;
     fit();
+    autoPlayOrder();
   }
 
   function selectPokemon(id){
     cancelAutoNext();
+    cancelAutoOrder();
     state.nid = id; state.mode = 'name';
     speakNow(nameOf(id));
     stopOrder();
@@ -1678,6 +1709,7 @@ function composeSyllable(char, jamoData = hangulCharData) {
     updateBuddy(id, null, nm, chars.length + '글자 · 따라 써 보세요');
     $('#sub').textContent = nm + ' · ' + chars.length + '글자';
     fit();
+    autoPlayOrder();
   }
 
   function updateBuddy(id, big, name, tag){
@@ -1731,6 +1763,7 @@ function composeSyllable(char, jamoData = hangulCharData) {
   }
   function setGuide(on){
     prefs.guide = on; sset('hg.prefs.v1', prefs);
+    if(!on) cancelAutoOrder();
     for(var i=0;i<pads.length;i++) pads[i].guide = on;
     repaintGuides();
     if(on){ kickGuide(); } else { cancelPulse(); if(anim) stopOrder(); }
