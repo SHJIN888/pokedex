@@ -109,7 +109,8 @@ html[data-theme="dark"] .pill[aria-pressed="true"]{color:#08110f}
 .switch{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);
   border:1px solid var(--line);background:var(--chip);border-radius:8px;padding:4px 9px;cursor:pointer;user-select:none}
 .switch input{accent-color:var(--accent);margin:0;width:14px;height:14px}
-.switch.on{color:var(--accent);border-color:var(--accent)}
+.switch.on,.switch:has(input:checked){color:var(--accent);border-color:var(--accent);
+  background:color-mix(in srgb, var(--accent) 10%, var(--chip))}
 .spacer{flex:1 1 auto}
 
 /* ---------- cards ---------- */
@@ -347,7 +348,7 @@ html[data-theme="dark"] .tab[aria-selected="true"]{color:#08110f}
   <div class="tools">
     <label class="switch" title="검색어와 일치하는 행만 표시"><input type="checkbox" id="onlyMatch" checked> 일치 행만</label>
     <label class="switch" title="쟁점이 갈리는 행을 강조하고 요약 카드를 엽니다"><input type="checkbox" id="diffMode"> 차이 강조</label>
-    <button class="btn" type="button" id="btnCards" aria-pressed="false">📌 요약 카드</button>
+    <label class="switch" title="핵심 쟁점 요약 카드를 엽니다"><input type="checkbox" id="showCards"> 📌 요약 카드</label>
     <button class="btn" type="button" id="btnReset" title="관할·검색·필터를 기본값으로">↺ 초기화</button>
     <span class="spacer"></span>
     <button class="btn" type="button" id="btnMd">⧉ Markdown 복사</button>
@@ -711,9 +712,13 @@ function mark(root, tokens){
 /* ---------------- difference cards ---------------- */
 function renderCards(){
   const box=$("#cards"), sel=selected();
-  const show = state.cards || state.diff;
+  const show = state.cards;
   box.classList.toggle("hidden", !show);
-  $("#btnCards").setAttribute("aria-pressed", show?"true":"false");
+  const cb=$("#showCards");
+  if(cb){
+    cb.checked=show;
+    const lab=cb.closest("label"); if(lab) lab.classList.toggle("on", show);
+  }
   if(!show) return;
   const cards=D.cards.filter(c=>c.jur.some(id=>state.sel.has(id)));
   let html='<h2>차이점 요약 · 선택한 관할 기준</h2>';
@@ -828,18 +833,22 @@ $("#qClear").addEventListener("click",()=>{
   state.q=""; $("#q").value=""; $("#qClear").classList.add("hidden"); applySearch(); $("#q").focus();
 });
 $("#onlyMatch").addEventListener("change",e=>{state.onlyMatch=e.target.checked; applySearch();});
+let cardsAuto=false;   // 차이 강조가 자동으로 연 카드인지 (끌 때 함께 닫기 위해)
 $("#diffMode").addEventListener("change",e=>{
-  state.diff=e.target.checked; document.body.classList.toggle("diff-on",state.diff); renderCards();
+  state.diff=e.target.checked; document.body.classList.toggle("diff-on",state.diff);
+  if(state.diff && !state.cards){ state.cards=true; cardsAuto=true; }      // 차이 강조를 켜면 카드도 열고 체크 표시를 맞춘다
+  else if(!state.diff && cardsAuto){ state.cards=false; cardsAuto=false; }  // 자동으로 열린 카드만 함께 닫는다
+  renderCards();
 });
-$("#btnCards").addEventListener("click",()=>{
-  state.cards=!state.cards; renderCards();
+$("#showCards").addEventListener("change",e=>{
+  state.cards=e.target.checked; cardsAuto=false; renderCards();
   if(state.cards) $("#cards").scrollIntoView({behavior:"smooth",block:"start"});
 });
 $("#btnReset").addEventListener("click",()=>{
   state.sel=new Set(REQ); state.cat="all"; state.q=""; $("#q").value="";
   $("#qClear").classList.add("hidden"); $("#onlyMatch").checked=true; state.onlyMatch=true;
   $("#diffMode").checked=false; state.diff=false; document.body.classList.remove("diff-on");
-  state.cards=false; render();
+  $("#showCards").checked=false; state.cards=false; cardsAuto=false; render();
 });
 $("#btnTheme").addEventListener("click",()=>{
   setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
