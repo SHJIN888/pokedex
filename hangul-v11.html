@@ -602,6 +602,21 @@ body.mode-match #pads{ display:none; }
   white-space:nowrap;
 }
 .mcount b{ font-size:13px; color:var(--coral-d); }
+.mpeek{
+  height:34px; padding:0 12px; border-radius:999px; background:#FFF6E2;
+  border:1px solid rgba(240,162,58,.45); color:#A9681B;
+  display:flex; align-items:center; gap:5px; white-space:nowrap; flex:0 0 auto;
+  font-size:11.5px; font-weight:800; letter-spacing:-.02em; box-shadow:var(--sh1);
+}
+.mpeek b{ font-size:15px; color:#D98324; font-variant-numeric:tabular-nums; }
+.mpeek b.bump{ animation:bumpPop .45s cubic-bezier(.2,1.4,.4,1); }
+@keyframes bumpPop{ from{ transform:scale(1.55); opacity:.25; } to{ transform:none; opacity:1; } }
+.mpeek[hidden]{ display:none; }
+.mcount[hidden]{ display:none; }
+/* 미리보기 동안에는 난이도 버튼을 비워 카운트다운이 한 줄에 들어오게 */
+body.peeking #matchBar .mseg{ display:none; }
+body.peeking #matchBar{ justify-content:center; }
+body.peeking #matchBar .mright{ margin-left:0; }
 
 /* 판 · 카드 */
 .matchWrap{ width:100%; height:100%; min-height:0; display:flex; overflow:auto; -webkit-overflow-scrolling:touch; }
@@ -626,7 +641,6 @@ body.mode-match #pads{ display:none; }
   position:relative; width:100%; height:100%;
   transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
   transition:transform .52s cubic-bezier(.22,.8,.28,1);
-  will-change:transform;
 }
 .mcard.flip .mfi{ transform:rotateY(180deg); }
 
@@ -634,6 +648,20 @@ body.mode-match #pads{ display:none; }
   position:absolute; inset:0; border-radius:16px; overflow:hidden;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  transform-style:flat; -webkit-transform-style:flat;   /* 자식 레이어가 3D 평면으로 새지 않게 */
+  opacity:1; visibility:visible;
+  /* 회전 약 90°(0.07s) 지점에서 앞·뒷면을 완전히 교차 — iOS WebKit 비침 차단 */
+  transition:opacity .06s linear .07s, visibility 0s linear .07s;
+}
+
+/* 안전장치: 뒤집히면 뒷면(몬스터볼)은 흔적도 없이 숨고, 안 뒤집히면 앞면이 숨는다 */
+.mcard.flip .mf.back,
+.mcard.ok .mf.back{
+  opacity:0; visibility:hidden; pointer-events:none;
+}
+.mcard.flip .mf.front,
+.mcard.ok .mf.front{
+  opacity:1; visibility:visible;
 }
 
 /* 뒷면 — 코랄 레드 카드 + 몬스터볼 */
@@ -658,15 +686,18 @@ body.mode-match #pads{ display:none; }
   background:linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.16) 48%, rgba(255,255,255,0) 80%);
   transform:rotate(13deg); pointer-events:none;
 }
-.mball{ position:relative; z-index:1; width:56%; max-width:74px; height:auto; display:block;
-  filter:drop-shadow(0 2px 3px rgba(120,20,20,.30)); }
+/* 몬스터볼: z-index·filter(합성 레이어) 제거 — iOS 에서 backface 가 무시되어 앞면 위로 비치던 원인 */
+.mball{ position:relative; width:56%; max-width:74px; height:auto; display:block;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden; }
 
 /* 앞면 — 순백 카드 + 공식 일러스트 + 이름 */
 .mf.front{
-  transform:rotateY(180deg);
+  transform:rotateY(180deg); -webkit-transform:rotateY(180deg);
   background:#fff; border:1px solid var(--line); padding:8px 5px 7px;
   box-shadow:0 2px 5px rgba(30,36,48,.07), 0 10px 22px rgba(30,36,48,.09);
-  transition:box-shadow .24s, border-color .24s;
+  opacity:0; visibility:hidden;
+  transition:box-shadow .24s, border-color .24s, opacity .06s linear .07s, visibility 0s linear .07s;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
 }
 .mf.front img{ width:88%; height:64%; object-fit:contain; display:block; }
 .mf.front b{
@@ -707,6 +738,9 @@ body.mode-rule #pads{ display:none; }
 @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
 
 .seq{ display:flex; align-items:center; justify-content:center; --sw:56px; --arw:14px; }
+.seq.multi{ flex-direction:column; gap:9px; }        /* 6~8칸은 두 줄로 나눠 한눈에 */
+.seqRow{ display:flex; align-items:center; justify-content:center; }
+.puzzle.compact{ gap:15px; }
 .sq{
   flex:0 0 auto; width:var(--sw); height:calc(var(--sw) * 1.2); border-radius:14px;
   background:#fff; border:1px solid var(--line);
@@ -734,10 +768,20 @@ body.mode-rule #pads{ display:none; }
   flex:0 0 auto; width:var(--arw); text-align:center; color:#B5A78D;
   font-size:16px; font-weight:800; line-height:1;
 }
-.qhint{ display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:var(--muted); }
+.qhint{ display:flex; align-items:center; flex-wrap:wrap; justify-content:center; gap:6px; text-align:center;
+  font-size:11.5px; font-weight:700; color:var(--muted); }
+.qhint.on{ color:#A9681B; }
+.qhint.on .dot{ background:#F0A23A; }
+.hintBtn{
+  appearance:none; border:1px solid rgba(240,162,58,.45); background:#FFF6E2; color:#A9681B;
+  font-family:inherit; font-size:11px; font-weight:800; letter-spacing:-.02em;
+  padding:4px 9px; border-radius:999px; line-height:1; transition:transform .12s;
+}
+.hintBtn:active{ transform:scale(.95); }
+.hintBtn[hidden]{ display:none; }
 .qhint .dot{ width:6px; height:6px; border-radius:50%; background:var(--coral); animation:pulse 1.4s infinite; }
 
-.choices{ display:flex; justify-content:center; align-items:center; gap:10px; --cw:84px; }
+.choices{ display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:10px; row-gap:8px; --cw:84px; }
 .rcard{
   appearance:none; flex:0 0 auto; width:var(--cw); height:calc(var(--cw) * 1.28);
   border-radius:16px; background:#fff; border:1px solid var(--line); padding:6px 4px;
@@ -780,6 +824,8 @@ body.mode-rule #pads{ display:none; }
 }
 @media (prefers-reduced-motion:reduce){
   .mfi{ transition:transform .18s linear; }
+  .mf{ transition:opacity 0s linear .09s, visibility 0s linear .09s; }
+  .mf.front{ transition:box-shadow .24s, border-color .24s, opacity 0s linear .09s, visibility 0s linear .09s; }
   .mcard.bad{ animation:none; }
   .mcard.ok .mf.front::after{ animation:none; }
 }
@@ -828,6 +874,7 @@ body.mode-rule #pads{ display:none; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 12a8.4 8.4 0 1 1-2.5-6"/><path d="M20.6 4.2v5h-5"/></svg>
         <span>새 게임</span>
       </button>
+      <div class="mpeek" id="mPeek" hidden aria-live="polite">잘 기억해 봐! <b>3</b></div>
       <div class="mcount" id="mCount" aria-live="polite"><b>0</b><span>/ 3쌍</span></div>
     </div>
   </div>
@@ -891,7 +938,7 @@ body.mode-rule #pads{ display:none; }
     <div class="ruleWrap" id="ruleWrap" hidden>
       <div class="puzzle" id="puzzle">
         <div class="seq" id="seq" role="group" aria-label="규칙 문제"></div>
-        <div class="qhint"><span class="dot"></span><span>빈 칸에 올 포켓몬을 골라 봐요</span></div>
+        <div class="qhint" id="qhint"><span class="dot"></span><span id="qhintText">빈 칸에 올 포켓몬을 골라 봐요</span><button type="button" class="hintBtn" id="rHint" hidden>💡 힌트</button></div>
         <div class="choices" id="choices" role="group" aria-label="보기 카드"></div>
       </div>
     </div>
@@ -2926,7 +2973,7 @@ window.HKArt = (function(){
   ].filter(function(v, i, a){ return a.indexOf(v) === i; });
 
   var mq = [];                                   /* 아직 안 나온 포켓몬 큐 */
-  var M = { lv: 6, ids: [], open: [], busy: false, done: 0, total: 3 };
+  var M = { lv: 6, ids: [], open: [], busy: false, done: 0, total: 3, peek: false, peekTimer: 0 };
 
   function mShuffle(a){
     for(var i = a.length - 1; i > 0; i--){
@@ -2992,7 +3039,7 @@ window.HKArt = (function(){
     if(bar) bar.hidden = !on;
     var wrap = document.getElementById('matchWrap');
     if(wrap) wrap.hidden = !on;
-    if(!on) M.busy = false;
+    if(!on){ M.busy = false; stopPeek(); }
   }
 
   function updateMatchCount(){
@@ -3018,6 +3065,7 @@ window.HKArt = (function(){
       var back = el('div', 'mf back');
       back.innerHTML =
         '<svg class="mball" viewBox="0 0 100 100" aria-hidden="true">' +
+        '<ellipse cx="50" cy="95" rx="27" ry="4.6" fill="#8C1A1A" opacity=".22"/>' +
         '<circle cx="50" cy="50" r="43" fill="#FFF6E7"/>' +
         '<path d="M7 50a43 43 0 0 1 86 0Z" fill="#FF5252"/>' +
         '<rect x="7" y="46.4" width="86" height="7.2" fill="#1E2430"/>' +
@@ -3032,10 +3080,56 @@ window.HKArt = (function(){
       fi.appendChild(back);
       fi.appendChild(front);
       b.appendChild(fi);
+      if(M.peek) b.classList.add('flip');        /* 미리보기: 처음부터 앞면이 보이게 */
       b.addEventListener('click', function(){ tapCard(b); });
       board.appendChild(b);
     });
     board.dataset.cols = String(M.lv === 16 ? 4 : 3);
+  }
+
+  /* ── 시작 미리보기: 전체 그림을 보여 주고 3·2·1 뒤에 한꺼번에 뒤집어요 ── */
+  function peekMs(){ return M.lv === 6 ? 2000 : (M.lv === 12 ? 3000 : 3500); }
+
+  function stopPeek(){
+    if(M.peekTimer){ clearInterval(M.peekTimer); M.peekTimer = 0; }
+    M.peek = false;
+    var pill = document.getElementById('mPeek');
+    var box = document.getElementById('mCount');
+    if(pill) pill.hidden = true;
+    if(box) box.hidden = false;
+    document.body.classList.remove('peeking');
+    Array.prototype.forEach.call(document.querySelectorAll('#board .mcard.flip:not(.ok)'), function(c){
+      c.classList.remove('flip');
+      c.setAttribute('aria-label', '카드 ' + (+c.dataset.i + 1));
+    });
+  }
+
+  function startPeek(){
+    if(M.peekTimer){ clearInterval(M.peekTimer); M.peekTimer = 0; }
+    var cards = document.querySelectorAll('#board .mcard');
+    if(!cards.length) return;
+    M.peek = true;
+    Array.prototype.forEach.call(cards, function(c){
+      if(!c.classList.contains('ok')) c.classList.add('flip');
+    });
+    var pill = document.getElementById('mPeek');
+    var num = pill ? pill.querySelector('b') : null;
+    var box = document.getElementById('mCount');
+    if(pill) pill.hidden = false;
+    if(box) box.hidden = true;
+    document.body.classList.add('peeking');
+    var ms = peekMs(), steps = Math.max(2, Math.min(3, Math.ceil(ms / 1000))), remain = steps;
+    function show(n){
+      if(!num) return;
+      num.textContent = String(n);
+      num.classList.remove('bump'); void num.offsetWidth; num.classList.add('bump');
+    }
+    show(remain);
+    M.peekTimer = setInterval(function(){
+      remain--;
+      if(remain <= 0){ stopPeek(); return; }
+      show(remain);
+    }, Math.round(ms / steps));
   }
 
   function newGame(lv){
@@ -3051,13 +3145,15 @@ window.HKArt = (function(){
     ids.forEach(function(id){ deck.push(id, id); });
     mShuffle(deck);
     M.ids = ids; M.open = []; M.busy = false; M.done = 0; M.total = pairs;
+    M.peek = true;                       /* 새 게임은 전체 그림 미리보기로 시작 */
     buildBoard(deck);
     updateMatchCount();
     fit();
+    startPeek();
   }
 
   function tapCard(b){
-    if(M.busy || !b) return;
+    if(M.peek || M.busy || !b) return;
     if(b.classList.contains('flip') || b.classList.contains('ok')) return;
     b.classList.add('flip');
     b.setAttribute('aria-label', nameOf(+b.dataset.id));
@@ -3162,6 +3258,9 @@ window.HKArt = (function(){
     if(sub) sub.textContent = '카드 짝맞추기';
     if(typeof lv === 'number'){ newGame(lv); return; }
     if(!M.ids.length || M.done >= M.total){ newGame(); return; }
+    if(!M.open.length && !document.querySelector('#board .mcard.flip, #board .mcard.ok')){
+      startPeek(); return;               /* 아직 아무 카드도 안 열었으면 미리보기부터 */
+    }
     updateMatchCount();
     fit();
   }
@@ -3177,39 +3276,134 @@ window.HKArt = (function(){
 
   /* ══ v11: 규칙 찾기 (패턴 추론) ═══════════════════════════════
      같은 포켓몬이 되풀이되는 규칙을 눈으로 익히고, 빈 칸에 올 친구를 고릅니다.
-     5문제가 한 세트이고, 다 맞히면 스티커를 받습니다. */
-  var R = { lv: 'easy', idx: 0, total: 5, seq: [], blank: 0, answer: 0, options: [], busy: false, solved: false };
-  var R_CYCLE = { easy: ['AB'], normal: ['AAB', 'ABB', 'ABC'], hard: ['ABAC', 'ABCD', 'AABB'] };
+     쉬움 → 보통 → 도전 순으로 고차원 규칙이 되고, 도전에는 빈 칸 두 개와 힌트가 있습니다. */
+  var R = {
+    lv: 'easy', idx: 0, total: 5, seq: [], blanks: [], answers: [], at: 0,
+    options: [], hint: '', kind: '', busy: false, solved: false, slots: []
+  };
+  var R_CYCLE = { easy: ['AB', 'AAB', 'ABC'], normal: ['AAB', 'ABB', 'ABAC', 'AABB'] };
+  var R_HINT1 = '빈 칸에 올 포켓몬을 골라 봐요';
+  var R_HINT2 = '빈 칸 두 개를 왼쪽부터 차례로 골라 봐요';
 
   function rLevelLabel(lv){ return lv === 'easy' ? '쉬움' : (lv === 'normal' ? '보통' : '도전'); }
+  function rPick(a){ return a[Math.floor(Math.random() * a.length)]; }
+
+  /* 규칙 도형을 A·B·C… 글자로 만듭니다. */
+  function patternLetters(kind, n, arg){
+    var out = [], i, k, half, P;
+    if(kind === 'cycle'){                        /* AB / AAB / ABAC … 되풀이 */
+      for(i = 0; i < n; i++) out.push(arg.charAt(i % arg.length));
+    }else if(kind === 'grow'){                   /* A B AA B AAA — 한 친구 개수가 하나씩 늘어요 */
+      for(k = 1; out.length < n; k++){
+        for(i = 0; i < k && out.length < n; i++) out.push('A');
+        if(out.length < n) out.push('B');
+      }
+    }else if(kind === 'stair'){                  /* A BB CCC DD — 같은 친구가 점점 많이 모여요 */
+      for(k = 0; out.length < n; k++){
+        for(i = 0; i <= k && out.length < n; i++) out.push('ABCD'.charAt(k % 4));
+      }
+    }else if(kind === 'mirror'){                 /* 가운데를 중심으로 거울처럼 똑같아요 */
+      half = Math.ceil(n / 2);
+      for(i = 0; i < half; i++) out.push('ABCDE'.charAt(i));
+      for(i = n - half - 1; i >= 0; i--) out.push(out[i]);
+    }else if(kind === 'period'){                 /* ABC ABC AB — 몇 칸 주기로 되풀이 */
+      P = arg || 'ABC';
+      for(i = 0; i < n; i++) out.push(P.charAt(i % P.length));
+    }else{                                       /* anchor: 한 칸 걸러 늘 같은 친구, 사이만 바뀜 */
+      P = 'BCDE';
+      for(i = 0; i < n; i++) out.push(i % 2 === 0 ? 'A' : P.charAt(Math.floor(i / 2) % 4));
+    }
+    return out.slice(0, n);
+  }
+
+  /* 빈 칸의 답이 다른 '보이는' 칸에도 나와야 아이가 규칙으로 추론할 수 있습니다. */
+  function visibleElsewhere(letters, hidden, idx){
+    for(var i = 0; i < letters.length; i++){
+      if(hidden[i]) continue;
+      if(letters[i] === letters[idx]) return true;
+    }
+    return false;
+  }
+
+  function pickBlanks(letters, cands, count){
+    var hidden = {}, picked = [], pool = cands.slice(), guard = 0, i;
+    while(picked.length < count && pool.length && guard++ < 120){
+      i = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+      if(picked.length && letters[i] === letters[picked[0]]) continue;   /* 두 빈 칸은 서로 다른 정답 */
+      hidden[i] = 1;
+      if(visibleElsewhere(letters, hidden, i)) picked.push(i);
+      else delete hidden[i];
+    }
+    picked.sort(function(a, b){ return a - b; });
+    return picked;
+  }
 
   function makePuzzle(lv){
-    var fam = R_CYCLE[lv] || R_CYCLE.easy;
-    var cycle = fam[Math.floor(Math.random() * fam.length)];
-    var k = cycle.length;
-    var n = (lv === 'easy') ? (Math.random() < 0.5 ? 4 : 5) : 6;
-    var blank = n - 1;
-    if(lv === 'hard' && Math.random() < 0.45) blank = Math.max(2, n - 2);   /* 중간 빈칸 */
+    var n, kind, letters, blanks, i;
 
-    var ids = mTake(k);                       /* 규칙에 쓰는 서로 다른 친구 */
-    var map = {};
-    for(var i = 0; i < k; i++) map[cycle.charAt(i)] = ids[i];
-
-    var seq = [];
-    for(var j = 0; j < n; j++){
-      seq.push(j === blank ? null : map[cycle.charAt(j % k)]);
+    if(lv === 'easy'){                                   /* 입문: AB / AAB / ABC */
+      letters = patternLetters('cycle', (Math.random() < 0.5) ? 4 : 5, rPick(R_CYCLE.easy));
+      n = letters.length;
+      blanks = [n - 1];
+      kind = 'cycle';
+    }else if(lv === 'normal'){                           /* 보통: 길이 6 + 가운데 빈칸 */
+      letters = patternLetters('cycle', 6, rPick(R_CYCLE.normal));
+      n = letters.length;
+      blanks = (Math.random() < 0.6) ? [rPick([2, 3])] : [5];
+      kind = 'cycle';
+    }else{                                               /* 도전: 길이 7~8, 생각이 필요한 규칙 */
+      kind = rPick(['grow', 'mirror', 'anchor', 'period', 'stair', 'double']);
+      if(kind === 'double'){                             /* 빈 칸 두 개를 순서대로 */
+        letters = patternLetters('period', 8, rPick(['ABC', 'ABCD']));
+        n = letters.length;
+        blanks = pickBlanks(letters, [2, 3, 4, 5, 6, 7], 2);
+      }else{
+        n = (kind === 'mirror' || kind === 'anchor') ? 7 : 8;
+        letters = patternLetters(kind, n);
+        var cands = [];
+        for(i = 2; i <= n - 2; i++) cands.push(i);       /* 가운데 빈칸 */
+        if(Math.random() < 0.5) cands.push(n - 1);       /* 마지막 칸도 자주 */
+        blanks = pickBlanks(letters, cands, 1);
+      }
+      if(!blanks.length) blanks = [n - 1];
     }
-    var answer = map[cycle.charAt(blank % k)];
 
-    var distract = [], guard = 0;
-    while(distract.length < 3 && guard++ < 60){
+    var uniq = [], map = {};
+    letters.forEach(function(ch){ if(uniq.indexOf(ch) < 0) uniq.push(ch); });
+    var ids = mTake(uniq.length);
+    uniq.forEach(function(ch, j){ map[ch] = ids[j]; });
+
+    var seq = letters.map(function(ch){ return map[ch]; });
+    var hidden = {};
+    blanks.forEach(function(b){ hidden[b] = 1; seq[b] = null; });
+    var answers = blanks.map(function(b){ return map[letters[b]]; });
+
+    var nDist = answers.length > 1 ? 2 : 3, distract = [], guard = 0;
+    while(distract.length < nDist && guard++ < 80){
       var c = mTake(1)[0];
-      if(c === answer) continue;
-      if(seq.indexOf(c) >= 0) continue;
-      if(distract.indexOf(c) >= 0) continue;
+      if(answers.indexOf(c) >= 0) continue;
+      if(lv === 'easy' && seq.indexOf(c) >= 0) continue;    /* 쉬움은 보기에서 헷갈리지 않게 */
+      if(distract.indexOf(c) >= 0) continue;                /* 보통·도전은 이미 나온 친구도 보기로! */
       distract.push(c);
     }
-    return { seq: seq, blank: blank, answer: answer, options: mShuffle([answer].concat(distract)) };
+    var optSrc = answers.filter(function(v, k, a){ return a.indexOf(v) === k; });
+
+    return {
+      seq: seq, blanks: blanks, answers: answers, kind: kind, map: map,
+      options: mShuffle(optSrc.concat(distract))
+    };
+  }
+
+  function ruleHint(p){
+    var A = nameOf(p.map['A']);
+    var msg;
+    if(p.kind === 'grow') msg = A + ' 수가 하나 → 둘 → 셋… 점점 늘어나요!';
+    else if(p.kind === 'stair') msg = '같은 친구가 하나, 둘, 셋… 점점 많이 모여요!';
+    else if(p.kind === 'mirror') msg = '가운데를 기준으로 앞과 뒤가 거울처럼 똑같아요!';
+    else if(p.kind === 'anchor') msg = '한 칸 걸러 늘 같은 친구가 나와요. 사이 친구만 바뀌어요!';
+    else if(p.kind === 'double') msg = '같은 순서가 되풀이돼요. 두 빈 칸을 같이 봐요!';
+    else msg = '앞에서 나온 순서가 그대로 다시 되풀이돼요!';
+    return (p.answers.length > 1 ? '빈 칸 두 개를 왼쪽부터 차례로! ' : '') + msg;
   }
 
   function setRuleUI(on){
@@ -3237,21 +3431,44 @@ window.HKArt = (function(){
     return c;
   }
 
+  function setHintText(txt){
+    var s = document.getElementById('qhintText');
+    if(s) s.textContent = txt;
+    var q = document.getElementById('qhint');
+    if(q) q.classList.toggle('on', txt !== (R.answers.length > 1 ? R_HINT2 : R_HINT1));
+  }
+
   function renderPuzzle(){
     var seqBox = document.getElementById('seq'), chBox = document.getElementById('choices');
     if(!seqBox || !chBox) return;
     seqBox.innerHTML = ''; chBox.innerHTML = '';
-    R.seq.forEach(function(id, i){
-      if(i > 0) seqBox.appendChild(el('span', 'arw', '›'));
-      if(i === R.blank){
-        var q = el('div', 'sq blank');
-        q.id = 'blankSlot';
-        q.appendChild(el('span', 'qm', '?'));
-        seqBox.appendChild(q);
-      } else {
-        seqBox.appendChild(seqCard(id));
+    R.slots = [];
+
+    var n = R.seq.length;
+    var perRow = n <= 5 ? n : (n === 6 ? 3 : 4);          /* 6칸=3+3, 7~8칸=4+4 두 줄 */
+    var multi = n > 5;
+    seqBox.classList.toggle('multi', multi);
+    var pz = document.getElementById('puzzle');
+    if(pz) pz.classList.toggle('compact', multi);
+
+    for(var start = 0; start < n; start += perRow){
+      var row = el('div', 'seqRow');
+      for(var i = start; i < Math.min(start + perRow, n); i++){
+        if(i > start) row.appendChild(el('span', 'arw', '›'));
+        var k = R.blanks.indexOf(i);
+        if(k >= 0){
+          var q = el('div', 'sq blank');
+          q.id = 'blankSlot' + k;
+          q.appendChild(el('span', 'qm', '?'));
+          row.appendChild(q);
+          R.slots[k] = q;
+        }else{
+          row.appendChild(seqCard(R.seq[i]));
+        }
       }
-    });
+      seqBox.appendChild(row);
+    }
+
     R.options.forEach(function(id){
       var b = el('button', 'rcard');
       b.type = 'button';
@@ -3262,7 +3479,6 @@ window.HKArt = (function(){
       b.addEventListener('click', function(){ choose(id, b); });
       chBox.appendChild(b);
     });
-    var pz = document.getElementById('puzzle');
     if(pz){ pz.classList.remove('in'); void pz.offsetWidth; pz.classList.add('in'); }
     fitRule();
   }
@@ -3274,17 +3490,17 @@ window.HKArt = (function(){
     var padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
     var W = Math.max(200, stage.clientWidth - padX);
     var n = Math.max(1, R.seq.length);
-    var arw = n >= 6 ? 10 : 14;
-    var sw = Math.min(84, Math.floor((W - arw * (n - 1)) / n));
-    sw = Math.max(38, sw);
+    var perRow = n <= 5 ? n : (n === 6 ? 3 : 4);
+    var arw = perRow >= 4 ? 9 : 14;
+    var sw = Math.floor((W - arw * (perRow - 1)) / perRow);
+    sw = Math.max(34, Math.min(84, sw));
     seqBox.style.setProperty('--sw', sw + 'px');
     seqBox.style.setProperty('--arw', arw + 'px');
-    var cw = Math.min(94, Math.floor((W - 30) / 4));
-    cw = Math.max(54, cw);
+    var cols = R.options.length > 4 ? 3 : 4;
+    var cw = Math.floor((W - 10 * (cols - 1)) / cols);
+    cw = Math.max(54, Math.min(94, cw));
     chBox.style.setProperty('--cw', cw + 'px');
   }
-
-  function updateCount_only(){ /* (자리표시: 사용하지 않음) */ }
 
   function startRuleSet(lv){
     if(lv) R.lv = lv;
@@ -3298,18 +3514,21 @@ window.HKArt = (function(){
   function nextProblem(){
     if(R.idx >= R.total){ finishRule(); return; }
     var p = makePuzzle(R.lv);
-    R.seq = p.seq; R.blank = p.blank; R.answer = p.answer; R.options = p.options;
+    R.seq = p.seq; R.blanks = p.blanks; R.answers = p.answers; R.options = p.options;
+    R.kind = p.kind; R.hint = ruleHint(p); R.at = 0;
     R.busy = false; R.solved = false;
+    var hb = document.getElementById('rHint');
+    if(hb) hb.hidden = (R.lv === 'easy');
+    setHintText(R.answers.length > 1 ? R_HINT2 : R_HINT1);
     renderPuzzle();
     updateRuleCount();
   }
 
   function choose(id, btn){
     if(R.busy || R.solved) return;
-    if(id === R.answer){
-      R.solved = true; R.busy = true;
+    if(id === R.answers[R.at]){
       btn.classList.add('pick');
-      var slot = document.getElementById('blankSlot');
+      var slot = R.slots[R.at];
       if(slot){
         slot.className = 'sq filled';
         slot.innerHTML = '';
@@ -3318,6 +3537,12 @@ window.HKArt = (function(){
       }
       chime(); buzz(20);
       speak(nameOf(id));
+      R.at++;
+      if(R.at < R.answers.length){
+        setHintText(nameOf(id) + ' 좋아요! 이제 다음 빈 칸을 골라 봐요');
+        return;
+      }
+      R.solved = true; R.busy = true;
       setTimeout(function(){
         if(state.mode !== 'rule'){ R.busy = false; return; }
         R.idx++;
@@ -3392,6 +3617,14 @@ window.HKArt = (function(){
   (function(){
     var nb = document.getElementById('rNew');
     if(nb) nb.addEventListener('click', function(){ if(state.mode === 'rule') nextProblem(); });
+  })();
+  (function(){
+    var hb = document.getElementById('rHint');
+    if(hb) hb.addEventListener('click', function(){
+      if(!R.hint) return;
+      setHintText(R.hint);
+      buzz(8);
+    });
   })();
 
   /* ── wiring ──────────────────────────────── */
