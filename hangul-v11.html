@@ -3403,7 +3403,7 @@ window.HKArt = (function(){
     else if(p.kind === 'anchor') msg = '한 칸 걸러 늘 같은 친구가 나와요. 사이 친구만 바뀌어요!';
     else if(p.kind === 'double') msg = '같은 순서가 되풀이돼요. 두 빈 칸을 같이 봐요!';
     else msg = '앞에서 나온 순서가 그대로 다시 되풀이돼요!';
-    return (p.answers.length > 1 ? '빈 칸 두 개를 왼쪽부터 차례로! ' : '') + msg;
+    return msg;
   }
 
   function setRuleUI(on){
