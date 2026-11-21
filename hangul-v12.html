@@ -1025,6 +1025,19 @@ body.mode-game #pads{ display:none; }
 
 /* 🛤️ 길 잇기 */
 .ptGrid{ position:relative; display:grid; gap:6px; margin:0 auto; touch-action:none; }
+/* 📱 iOS Safari: 격자 위 드래그로 화면이 스크롤·바운스되지 않게 고정 */
+#ptGrid, #ptGrid *, #pathWrap .ptGrid{
+  touch-action:none; -ms-touch-action:none;
+  -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
+  -webkit-user-drag:none;
+}
+#pathWrap, #ptPanel{ overscroll-behavior:none; overscroll-behavior-y:none; }
+#pathWrap{ touch-action:none; }
+body.mode-path, body.mode-path .app, body.mode-path .stage,
+body.mode-path #pathWrap, body.mode-path #ptPanel{
+  overscroll-behavior:none; overscroll-behavior-y:none;
+}
+body.mode-path #pathWrap{ overflow:hidden; -webkit-overflow-scrolling:auto; }
 .ptGrid img, .ptCell img, .pitems img, .pchip img, .gopt img, .eqSide img, .clue img{ -webkit-user-drag:none; user-drag:none; user-select:none; -webkit-user-select:none; }
 .ptCell{
   appearance:none; border:1px solid var(--line); background:#fff; border-radius:14px; padding:0; position:relative;
@@ -4059,6 +4072,8 @@ window.HKArt = (function(){
   function setV12UI(mode){
     var g = !!mode;
     document.body.classList.toggle('mode-game', g);
+    /* 길 잇기 화면이 활성일 때만 body·stage 의 바운스·당겨서 새로고침 차단 */
+    document.body.classList.toggle('mode-path', mode === 'path');
     var nav = document.getElementById('gameNav');
     if(nav) nav.hidden = !(g && mode !== 'games');
     var lw = document.getElementById('gameWrap');
@@ -5052,6 +5067,7 @@ window.HKArt = (function(){
         c.setAttribute('aria-label', (Math.floor(i / n) + 1) + '줄 ' + (i % n + 1) + '칸');
         c.addEventListener('pointerdown', (function(ii){ return function(){ ptDown(ii); }; })(i));
         c.addEventListener('click', (function(ii){ return function(){
+          if(PT.lastTouchAt && Date.now() - PT.lastTouchAt < 400) return;   /* 터치 탭은 touchend 에서 이미 처리 */
           if(PT.dragEnd && Date.now() - PT.dragEnd < 260) return;
           ptTap(ii);
         }; })(i));
@@ -5147,14 +5163,17 @@ window.HKArt = (function(){
     PT.dragging = false;
   }
 
-  function ptDragMove(e){
-    if(PT.busy || PT.solved) return;
-    var node = document.elementFromPoint(e.clientX, e.clientY);
-    if(!node) return;
-    var cell = node.closest ? node.closest('.ptCell') : null;
-    if(!cell) return;
+  function ptCellAt(x, y){
+    if(typeof document.elementFromPoint !== 'function') return -1;
+    var node = document.elementFromPoint(x, y);
+    var cell = node && node.closest ? node.closest('.ptCell') : null;
+    if(!cell || !cell.dataset) return -1;
     var i = parseInt(cell.dataset.i, 10);
-    if(isNaN(i)) return;
+    return isNaN(i) ? -1 : i;
+  }
+
+  function ptDragTo(i){
+    if(PT.busy || PT.solved || i < 0) return;
     if(!PT.dragging){
       if(PT.pdCell != null) ptTap(PT.pdCell);
       PT.dragging = true;
@@ -5163,6 +5182,56 @@ window.HKArt = (function(){
     if(i === PT.dragLast) return;
     PT.dragLast = i;
     ptTap(i);
+  }
+
+  function ptDragMove(e){
+    if(PT.busy || PT.solved) return;
+    ptDragTo(ptCellAt(e.clientX, e.clientY));
+  }
+
+  /* ── iOS Safari 터치 드래그 ──────────────────────
+     touchstart·touchmove 를 {passive:false} 로 등록해 e.preventDefault() 하므로
+     손가락 드래그 중 페이지 스크롤·고무줄 바운스·당겨서 새로고침이 시작되지 않습니다.
+     터치와 마우스(PointerEvent)가 겹쳐 두 번 실행되지 않도록
+     PT.touchMode 플래그와 PT.lastTouchAt 타임스탬프로 정리합니다. */
+  var ptT = { active:false, x:0, y:0, moved:false };
+
+  function ptTouchStart(e){
+    var t = e.touches && e.touches[0];
+    if(!t) return;
+    if(e.cancelable) e.preventDefault();      /* 화면 이동 시작 자체를 막는다 */
+    ptT.active = true; ptT.x = t.clientX; ptT.y = t.clientY; ptT.moved = false;
+    PT.touchMode = true;                     /* 이 제스처는 터치 담당 */
+    PT.dragging = false;
+    var i = ptCellAt(t.clientX, t.clientY);
+    if(i >= 0) ptDown(i);
+    else PT.pdCell = null;
+  }
+
+  function ptTouchMove(e){
+    if(!ptT.active) return;
+    if(e.cancelable) e.preventDefault();      /* 드래그 내내 화면 고정 */
+    var t = e.touches && e.touches[0];
+    if(!t) return;
+    if(Math.abs(t.clientX - ptT.x) > 3 || Math.abs(t.clientY - ptT.y) > 3) ptT.moved = true;
+    if(!ptT.moved) return;                   /* 아직 탭: 3px 넘게 움직였을 때만 드래그 */
+    ptDragTo(ptCellAt(t.clientX, t.clientY));
+  }
+
+  function ptTouchEnd(e){
+    if(!ptT.active) return;
+    ptT.active = false;
+    PT.touchMode = false;
+    PT.lastTouchAt = Date.now();             /* 뒤따르는 합성 click 은 무시 */
+    if(PT.dragging || ptT.moved){
+      PT.dragging = false;
+      PT.pdCell = null;
+    } else {
+      var i = PT.pdCell;
+      PT.pdCell = null;
+      if(i != null) ptTap(i);                /* 터치 탭은 여기서 직접 처리 */
+    }
+    PT.dragEnd = Date.now();
   }
 
   function ptUp(){
@@ -5232,6 +5301,7 @@ window.HKArt = (function(){
     var p = ptMake(PT.lv);
     PT.n = p.n; PT.block = p.block; PT.start = p.start; PT.goal = p.goal;
     PT.path = [p.start]; PT.busy = false; PT.solved = false; PT.dragging = false; PT.dragLast = -1;
+    ptT.active = false; PT.touchMode = false;
     var g = document.getElementById('ptGrid');
     if(g) g.innerHTML = '';
     var svg = document.getElementById('ptSvg');
@@ -5369,9 +5439,17 @@ window.HKArt = (function(){
     var pg = document.getElementById('ptGrid');
     if(pg){
       pg.addEventListener('dragstart', function(e){ e.preventDefault(); });
-      pg.addEventListener('pointermove', function(e){ if(e.buttons) ptDragMove(e); });
-      pg.addEventListener('pointerup', ptUp);
-      pg.addEventListener('pointercancel', ptUp);
+      pg.addEventListener('pointermove', function(e){
+        if(PT.touchMode) return;             /* 터치 제스처는 touch 핸들러가 담당 */
+        if(e.buttons) ptDragMove(e);
+      });
+      pg.addEventListener('pointerup', function(){ if(PT.touchMode) return; ptUp(); });
+      pg.addEventListener('pointercancel', function(){ if(PT.touchMode) return; ptUp(); });
+      /* { passive:false } + preventDefault: iOS Safari 스크롤·바운스·당겨서 새로고침 차단 */
+      pg.addEventListener('touchstart', ptTouchStart, { passive:false });
+      pg.addEventListener('touchmove', ptTouchMove, { passive:false });
+      pg.addEventListener('touchend', ptTouchEnd, { passive:false });
+      pg.addEventListener('touchcancel', ptTouchEnd, { passive:false });
     }
   })();
 
