@@ -290,6 +290,8 @@
   /* 검색창은 손가락으로 고칠 수 있어야 합니다 (body 의 user-select:none 무시) */
   input, textarea{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
   .searchBar input{ caret-color:#2a9bea; }
+  /* 아이폰 키보드가 올라오면 시트 높이를 보이는 화면에 맞춰 결과가 가려지지 않게 */
+  .sheetIn{ max-height:min(86dvh, calc(var(--vvh, 86dvh) - 10px)); }
   /* 짧은 화면(iPhone SE 등)에서는 그림판이 커 보이도록 위아래를 좀입니다 */
   @media (max-height: 730px){
     body.mode-draw .strip{ padding:5px 12px 6px; }
@@ -2120,8 +2122,21 @@ window.HKArt = (function(){
     s.addEventListener('click', function(e){ if(e.target === s) s.hidden = true; });
   });
 
+  /* 아이폰: 키보드가 올라오면 보이는 화면(visualViewport)만 줄어듭니다.
+     그 높이를 --vvh 로 넘겨 검색 시트가 결과까지 보이게 합니다. */
+  function trackViewport(){
+    var vv = window.visualViewport;
+    if(!vv) return;
+    document.documentElement.style.setProperty('--vvh', Math.round(vv.height) + 'px');
+  }
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', trackViewport);
+    window.visualViewport.addEventListener('scroll', trackViewport);
+    trackViewport();
+  }
+
   var rt;
-  window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(fit, 120); });
+  window.addEventListener('resize', function(){ trackViewport(); clearTimeout(rt); rt = setTimeout(fit, 120); });
   window.addEventListener('orientationchange', function(){ setTimeout(fit, 260); });
 
   /* ── boot ────────────────────────────────── */
