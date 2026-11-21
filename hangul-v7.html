@@ -373,8 +373,9 @@
   #outlineBtn .olIco{ width:25px; height:25px; }
 
   /* 찾기: 초성 칩 */
-  .choRow{ display:flex; gap:5px; overflow-x:auto; overflow-y:hidden; padding:2px 2px 9px;
+  .choRow{ display:flex; flex:0 0 auto; gap:5px; overflow-x:auto; overflow-y:hidden; padding:2px 2px 9px;
     scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  .sheetIn .searchBar, .sheetIn .sheetHead, .sheetIn .note{ flex:0 0 auto; }
   .choRow::-webkit-scrollbar{ display:none; }
   .choChip{
     flex:0 0 auto; border:0; font-family:inherit; font-weight:900; font-size:13px;
