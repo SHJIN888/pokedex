@@ -436,6 +436,9 @@ html[data-theme="dark"] .aichip[aria-pressed="true"],html[data-theme="dark"] .ai
   background:var(--panel);font-size:10px;color:var(--muted);white-space:nowrap}
 .aitbl .agoto:hover{border-color:#94A3B8;color:var(--ink)}
 .aiempty{padding:26px 0;text-align:center;color:var(--muted2);font-size:12.5px}
+.aihintbar{display:flex;align-items:center;gap:6px;margin:0 0 6px;font-size:10.5px;color:var(--muted2)}
+.aihintbar::before{content:"";width:18px;height:1px;background:var(--line3)}
+.aihintbar.hidden{display:none}
 /* AI 툴 도입·활용 실무 고려사항 */
 .aiduty{margin:22px 0 0;padding-top:16px;border-top:1px solid var(--line3)}
 .aiduty-head h3{margin:0 0 5px;font-size:14px;font-weight:650;letter-spacing:-.2px}
@@ -1483,6 +1486,7 @@ html[data-theme="dark"] .acgh.common{border-bottom-color:#E5E7EB}
       <div class="aisearch"><input id="aiQ" type="search" inputmode="search" autocomplete="off" spellcheck="false" placeholder="검색: AI Act · 고위험 · 학습데이터 · 과징금" aria-label="AI 규제 검색"></div>
     </div>
     <div class="aimeta" id="aiMeta" aria-live="polite"></div>
+    <div class="aihintbar hidden" id="aiHint">옆으로 밀어 ‘제재 상한’·‘출처’ 열까지 비교</div>
     <div class="aiwrap" id="aiWrap"></div>
     <div class="aiduty" id="aiDuty">
       <div class="aiduty-head">
@@ -3046,6 +3050,8 @@ function renderAi(){
   });
   h+='</tbody></table>';
   $("#aiWrap").innerHTML=h;
+  const hb=$("#aiWrap"), hint=$("#aiHint");
+  if(hint && hb) hint.classList.toggle("hidden", hb.scrollWidth <= hb.clientWidth + 8);
   const mt=$("#aiMeta");
   if(mt) mt.innerHTML='<b>'+rows.length+'</b>개 관할 표시 · 전체 '+AI.juris.length+'개 · 근거 링크 '+rows.reduce((a,r)=>a+r.src.length,0)+'개'+(toks.length?' · 검색어 “'+aiEsc(aiState.q)+'”':'');
   const nt=$("#aiNote"); if(nt) nt.textContent=AI.note;
