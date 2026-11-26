@@ -224,6 +224,8 @@ html[data-theme="dark"] .switch.on,html[data-theme="dark"] .switch:has(input:che
 .pill[aria-pressed="true"]{background:var(--sel-bg);color:var(--sel-ink);font-weight:600}
 .pill[aria-pressed="true"]::before{content:"";position:absolute;left:0;top:5px;bottom:5px;width:2px;
   background:#0F172A}
+html[data-theme="dark"] .pill[aria-pressed="true"]::before,
+html[data-theme="dark"] .cspill[aria-pressed="true"]::before{background:#93C5FD}
 .pill[aria-pressed="true"] .n{color:var(--ink)}
 
 /* ---------- view switch: 밑줄 탭 ---------- */
@@ -324,6 +326,28 @@ html[data-theme="dark"] .b-live,html[data-theme="dark"] .b-prom{background:trans
 .cschip[aria-pressed="true"]{border-color:#0F172A;background:var(--sel-bg);color:var(--ink);font-weight:600}
 .cschip b{font-family:var(--mono);font-weight:600;font-size:10px;color:var(--muted2)}
 .cschip[aria-pressed="true"] b{color:var(--ink)}
+/* 상단 툴바: 국가·권역 + 정렬·초기화 */
+.cstoolbar{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin:0 0 15px;padding:0 0 11px;border-bottom:1px solid var(--line)}
+.cstoolbar .csfilter{margin:0;flex:1 1 300px}
+.cstoolbar .csacts{margin-left:auto;flex:0 0 auto}
+/* 2단: 좌측 위반 유형 사이드바 + 사례 목록 (분류 사이드바와 같은 톤) */
+.csbody{display:flex;align-items:stretch;margin:0}
+.cs-sidebar{position:relative;z-index:3;flex:0 0 198px;width:198px;align-self:stretch;
+  padding:2px 14px 26px 0;border-right:1px solid var(--line)}
+.cs-inner{position:sticky;top:16px}
+.cs-sidebar .csh{margin:0 0 6px;padding:0 8px 6px}
+.cspills{display:flex;flex-direction:column;gap:0;overflow:visible}
+.cspill{position:relative;display:flex;align-items:center;gap:8px;width:100%;min-height:29px;padding:0 8px;
+  border:0;border-radius:2px;background:none;color:var(--muted);font-size:12.5px;text-align:left;
+  transition:background .12s,color .12s}
+.cspill:hover{background:var(--panel2);color:var(--ink)}
+.cspill .pn{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cspill .n{flex:0 0 auto;font-family:var(--mono);font-size:10.5px;color:var(--muted2)}
+.cspill[aria-pressed="true"]{background:var(--sel-bg);color:var(--sel-ink);font-weight:600}
+.cspill[aria-pressed="true"]::before{content:"";position:absolute;left:0;top:5px;bottom:5px;width:2px;background:#0F172A}
+.cspill[aria-pressed="true"] .n{color:var(--ink)}
+.csmain{flex:1 1 auto;min-width:0;padding:2px 0 0 18px}
+.csmain .csmeta{margin-top:0}
 .csmeta{margin:9px 0 12px;font-size:11.5px;color:var(--muted2)}
 .csmeta b{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums}
 .cssumx{margin-left:4px;font-size:10.5px;color:var(--muted2)}.cswrap{position:relative;padding-left:22px}
@@ -1000,6 +1024,23 @@ html[data-theme="dark"] .toast{background:#E2E8F0;color:#0B0F17}
   .tlpage{padding:14px 14px 26px}
   .ckpage{padding:14px 14px 26px}
   .dpiapage{padding:14px 14px 26px}
+  .cspage{padding:14px 14px 26px}
+  .cstoolbar{gap:8px;margin-bottom:12px;padding-bottom:9px}
+  .cstoolbar .csfilter{flex:1 1 100%}
+  .cstoolbar .csacts{margin-left:0;width:100%;justify-content:flex-end}
+  .csbody{display:block}
+  .cs-sidebar{width:auto;flex:0 1 auto;align-self:auto;padding:0 0 10px;margin:0 0 12px;
+    border-right:0;border-bottom:1px solid var(--line)}
+  .cs-inner{position:static}
+  .cs-sidebar .csh{display:flex;margin:0 0 5px;padding:0 0 0;border-bottom:0}
+  .cspills{flex-direction:row;flex-wrap:wrap;gap:5px}
+  .cspill{width:auto;min-height:26px;padding:0 8px;border:1px solid var(--line);border-radius:3px;
+    background:var(--panel);font-size:11.5px;gap:5px}
+  .cspill:hover{background:var(--panel)}
+  .cspill .pn{flex:0 0 auto;overflow:visible}
+  .cspill[aria-pressed="true"]{border-color:#0F172A;background:var(--sel-bg);color:var(--ink)}
+  .cspill[aria-pressed="true"]::before{display:none}
+  .csmain{padding:0}
   .dphead{gap:10px;margin-bottom:10px}
   .dphead h2{font-size:15px}
   .dphead p{font-size:11px}
@@ -1131,6 +1172,11 @@ html[data-theme="dark"] .acchip[aria-pressed="true"]{border-color:#BFDBFE}
 .acsum .acs b{font-family:var(--mono);font-size:16px;font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums}
 .acsum .acs.must b{color:var(--warn)}
 .acsum .acs.risk b{color:var(--bad)}
+.acsum .acs.kjump{border:0;border-bottom:1px dotted var(--line3);background:none;padding:0;font:inherit;font-size:11.5px;color:var(--muted2);cursor:pointer}
+.acsum .acs.kjump:hover{color:var(--ink);border-bottom-color:var(--ink)}
+.acsum .acs.kjump.on{color:var(--ink);border-bottom-color:var(--accent)}
+.acsum .acs.kjump.on b{color:var(--accent)}
+.acsum .acs.kjump[data-ackind="branch"].on b{color:var(--warn)}
 .acsum .acban{display:flex;gap:7px;align-items:flex-start;margin:0;font-size:11.5px;line-height:1.65;
   color:var(--muted);word-break:keep-all;border-top:1px solid var(--line2);padding-top:7px}
 .acsum .acban .bl{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;
@@ -1144,16 +1190,35 @@ html[data-theme="dark"] .acchip[aria-pressed="true"]{border-color:#BFDBFE}
 .acpart[aria-pressed="true"]{background:var(--sel-bg);color:var(--ink);font-weight:600;border-color:#0F172A}
 .acbar .spacer{flex:1 1 auto}
 .acgrpblk{margin:0 0 20px}
+/* 요건 구분(공통/분기) 사이드바 — 사례집 탭과 같은 톤 */
+.acbody{display:flex;align-items:stretch;margin:0}
+.ac-sidebar{position:relative;z-index:3;flex:0 0 198px;width:198px;align-self:stretch;
+  padding:2px 14px 26px 0;border-right:1px solid var(--line)}
+.ac-inner{position:sticky;top:16px}
+.ac-sidebar .csh{margin:0 0 6px;padding:0 8px 6px}
+.acmain{flex:1 1 auto;min-width:0;padding:2px 0 0 18px;border-top:0}
+.acmain .acgh:first-child{margin-top:0}
+.kdot{flex:0 0 auto;width:6px;height:6px;border-radius:50%;background:var(--muted2)}
+.kdot.common{background:var(--accent)}
+.kdot.branch{background:var(--warn)}
+.ackindnote{margin:12px 0 0;padding:9px 8px 0;border-top:1px solid var(--line2);font-size:10.5px;line-height:1.7;color:var(--muted2);word-break:keep-all}
+.ackindnote b{color:var(--muted);font-weight:600}
+.ackindnote .kdot{display:inline-block;margin:0 4px 1px 0;vertical-align:1px}
 .acgh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:16px 0 9px;padding:0 0 7px;border-bottom:1px solid var(--line)}
 .acgh h3{margin:0;font-size:13px;font-weight:650;letter-spacing:-.1px;display:flex;align-items:center;gap:6px}
 .acgh .fl{width:16px;height:11px;margin:0}
 .acgh .ack{font-family:var(--mono);font-size:10px;color:var(--muted2);border:1px solid var(--line);border-radius:2px;padding:1px 5px}
+.acgh .ack.k-common{color:var(--accent);border-color:var(--line);background:var(--sel-bg)}
+.acgh .ack.k-branch{color:var(--warn);border-color:var(--line);background:var(--hit)}
+html[data-theme="dark"] .acgh .ack.k-branch{background:var(--warnbg)}
 .acgh .acn{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--muted2)}
-.acgh.common{border-bottom-color:#0F172A}
-html[data-theme="dark"] .acgh.common{border-bottom-color:#E5E7EB}
+.acgh.common{border-bottom-color:var(--accent)}
+.acgh.bgh{border-bottom-color:var(--line3)}
+html[data-theme="dark"] .acgh.common{border-bottom-color:var(--accent)}
 .acgh p{margin:0;flex:1 1 260px;font-size:11px;line-height:1.6;color:var(--muted2)}
 .acitem{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:10px 12px 11px;margin:0 0 8px}
-.acitem.brk{border-left:3px solid var(--line3)}
+.acitem:not(.brk){border-left:3px solid var(--accent)}
+.acitem.brk{border-left:3px solid var(--warn)}
 .achd{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;margin:0 0 6px}
 .achd .aid{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.04em;color:var(--muted2);flex:0 0 auto}
 .achd h4{margin:0;font-size:12.5px;font-weight:650;letter-spacing:-.1px;line-height:1.45;flex:1 1 240px;min-width:0}
@@ -1185,6 +1250,13 @@ html[data-theme="dark"] .acgh.common{border-bottom-color:#E5E7EB}
   .acbar{gap:5px}
   .acpart{flex:1 1 auto;text-align:center}
   .acbar .btn{flex:1 1 auto}
+  .acbody{display:block}
+  .ac-sidebar{width:auto;flex:0 1 auto;align-self:auto;padding:0 0 10px;margin:0 0 12px;
+    border-right:0;border-bottom:1px solid var(--line)}
+  .ac-inner{position:static}
+  .ac-sidebar .csh{display:flex;margin:0 0 5px;padding:0;border-bottom:0}
+  .ackindnote{display:none}
+  .acmain{padding:0}
   .acitem{padding:9px 10px 10px}
   .achd h4{flex:1 1 100%}
   .acgh .acn{order:2;margin-left:auto}
@@ -1197,8 +1269,12 @@ html[data-theme="dark"] .acgh.common{border-bottom-color:#E5E7EB}
 }
 @media print{
   .acpage{padding:0;max-width:none}
-  .acpanel,.acbar,.achead .acacts{display:none !important}
+  .acpanel,.acbar,.achead .acacts,.ac-sidebar{display:none !important}
+  .acbody{display:block}
+  .acmain{padding:0}
   .acitem{break-inside:avoid;border:1px solid #cbd5e1;padding:6pt 8pt;margin:0 0 5pt}
+  .acitem:not(.brk){border-left:3px solid #1D4ED8}
+  .acitem.brk{border-left:3px solid #96560F}
   .acgh{break-after:avoid}
   .acfoot{border-top:1px solid #cbd5e1}
 }
@@ -1235,6 +1311,10 @@ html[data-theme="dark"] .acgh.common{border-bottom-color:#E5E7EB}
   .ckitem input{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .tlitem,.tlcard,.tlgroup{break-inside:avoid}
   .csitem,.cscard{break-inside:avoid}
+  .cstoolbar,.cs-sidebar,.csacts{display:none !important}
+  .csbody{display:block}
+  .cspage{padding:0;max-width:none}
+  .csmain{padding:0}
   .cswrap{padding-left:0}
   .cswrap::before{display:none}
   .csitem::before{display:none}
@@ -1272,9 +1352,9 @@ html[data-theme="dark"] .acgh.common{border-bottom-color:#E5E7EB}
     <div class="viewtabs" role="tablist" aria-label="보기 전환">
       <button class="vtab" type="button" role="tab" data-view="table" aria-selected="true">법제 비교표</button>
       <button class="vtab" type="button" role="tab" data-view="timeline" aria-selected="false">개정·시행 타임라인</button>
+      <button class="vtab" type="button" role="tab" data-view="cases" aria-selected="false">제재·과징금 사례집</button>
       <button class="vtab" type="button" role="tab" data-view="checklist" aria-selected="false">상황별 체크리스트</button>
       <button class="vtab" type="button" role="tab" data-view="dpia" aria-selected="false">글로벌 통합 DPIA 양식</button>
-      <button class="vtab" type="button" role="tab" data-view="cases" aria-selected="false">제재·과징금 사례집</button>
       <button class="vtab" type="button" role="tab" data-view="account-req" aria-selected="false">통합계정 요건 추출</button>
       <button class="vtab" type="button" role="tab" data-view="ai" aria-selected="false">AI 규제</button>
     </div>
@@ -1417,6 +1497,9 @@ html[data-theme="dark"] .acgh.common{border-bottom-color:#E5E7EB}
         <h2>제재·과징금 사례집</h2>
         <p>감독기구가 공식 보도자료·결정문으로 공표한 제재 <b>46건</b>을 모았습니다. 금액·처분일·기업명·근거 조문은 발표에 적힌 값만 옮겼고, 조문 번호를 밝히지 않은 사건은 추정하지 않았습니다. 외국 통화 금액은 원화 환산 참고치를 함께 적었습니다. 기준일 2026-11-26.</p>
       </div>
+    </div>
+    <div class="cstoolbar">
+      <div class="csfilter" role="group" aria-label="국가·권역 필터"><span class="lbl">국가·권역</span><div class="csrow" id="csRegion"></div></div>
       <div class="csacts">
         <button class="ckmini" type="button" id="csReset" title="국가·위반 유형·검색·정렬을 기본값으로">필터 초기화</button>
         <div class="cssort" role="group" aria-label="정렬 방식">
@@ -1425,10 +1508,18 @@ html[data-theme="dark"] .acgh.common{border-bottom-color:#E5E7EB}
         </div>
       </div>
     </div>
-    <div class="csfilter" role="group" aria-label="국가·권역 필터"><span class="lbl">국가·권역</span><div class="csrow" id="csRegion"></div></div>
-    <div class="csfilter" role="group" aria-label="위반 유형 필터"><span class="lbl">위반 유형</span><div class="csrow" id="csType"></div></div>
-    <div class="csmeta" id="csMeta" aria-live="polite"></div>
-    <div class="cswrap" id="csWrap"></div>
+    <div class="csbody">
+      <aside class="cs-sidebar" aria-label="위반 유형 필터">
+        <div class="cs-inner">
+          <div class="csh"><span>위반 유형</span><span class="csc" id="csTypeCount">—</span></div>
+          <div class="cspills" id="csType" role="group" aria-label="위반 유형 필터"></div>
+        </div>
+      </aside>
+      <div class="csmain">
+        <div class="csmeta" id="csMeta" aria-live="polite"></div>
+        <div class="cswrap" id="csWrap"></div>
+      </div>
+    </div>
     <p class="csnote">환율은 EUR 1,468 · GBP 1,764 · USD 1,335 · CNY 200.08 원 (2026-11-18 기준)을 적용했습니다. 각 사례의 ‘체크포인트’는 같은 유형의 위험이 우리 조직에서 어디에 있는지 짚기 위한 요약이며 감독기구의 판단이 아닙니다. 금액은 처분 시점의 발표 값이고, 항소·취소 소송으로 상태가 바뀔 수 있습니다(DPC 사건은 대부분 항소 계류 중이며, ICO TikTok 건은 2026.9 항소 취하로 확정). 인용 전 원문을 확인하세요.</p>
   </section>
   <section class="acpage hidden" id="acct" aria-label="통합계정 요건 추출">
@@ -1466,7 +1557,18 @@ html[data-theme="dark"] .acgh.common{border-bottom-color:#E5E7EB}
       <button class="btn" type="button" id="acDoc">Word(.doc)</button>
       <button class="btn" type="button" id="acPrint">인쇄·PDF</button>
     </div>
-    <div id="acWrap"></div>
+    <div class="acbody">
+      <aside class="ac-sidebar" aria-label="요건 구분 필터">
+        <div class="ac-inner">
+          <div class="csh"><span>요건 구분</span><span class="csc" id="acKindTotal">—</span></div>
+          <div class="cspills" id="acKind" role="group" aria-label="요건 구분"></div>
+          <p class="ackindnote"><span class="kdot common" aria-hidden="true"></span><b>글로벌 공통</b> 한 번 구현하면 고른 국가 전부 커버<br><span class="kdot branch" aria-hidden="true"></span><b>국가별 분기</b> 그 국가에서만 따로 구현·문서화</p>
+        </div>
+      </aside>
+      <div class="acmain">
+        <div id="acWrap"></div>
+      </div>
+    </div>
     <p class="acfoot" id="acNote"></p>
   </section>
   <section class="aipage hidden" id="ai" aria-label="AI 규제">
@@ -2104,9 +2206,10 @@ function renderCsFilters(){
   if(box) box.innerHTML=CSREG.map(r=>'<button class="cschip" type="button" data-csreg="'+r.id+'" aria-pressed="'+(state.csReg===r.id)+'">'+
     (r.id==="all"?'':'<span class="fl fl-'+(CSFLAG[r.id]||r.id)+'" aria-hidden="true"></span>')+r.name+'<b>'+(rc[r.id]||0)+'</b></button>').join("");
   const tbox=$("#csType");
-  if(tbox) tbox.innerHTML='<button class="cschip" type="button" data-cstype="all" aria-pressed="'+(state.csType==="all")+'">전체<b>'+CSITEMS.length+'</b></button>'+
-    CSTYPE.map(t=>'<button class="cschip" type="button" data-cstype="'+t.id+'" aria-pressed="'+(state.csType===t.id)+'">'+
-      t.name+'<b>'+(tc[t.id]||0)+'</b></button>').join("");
+  if(tbox) tbox.innerHTML='<button class="cspill" type="button" data-cstype="all" aria-pressed="'+(state.csType==="all")+'"><span class="pn">전체 사례</span><span class="n">'+CSITEMS.length+'</span></button>'+
+    CSTYPE.map(t=>'<button class="cspill" type="button" data-cstype="'+t.id+'" aria-pressed="'+(state.csType===t.id)+'">'+
+      '<span class="pn">'+t.name+'</span><span class="n">'+(tc[t.id]||0)+'</span></button>').join("");
+  const tcnt=$("#csTypeCount"); if(tcnt) tcnt.textContent=CSTYPE.length+"종";
   document.querySelectorAll(".cssort button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.csort===state.csSort)));
 }
 function renderCases(){
@@ -2708,7 +2811,8 @@ const AC_COND = Object.fromEntries((AC.conds||[]).map(c=>[c.id,c]));
 const ACNAME = Object.fromEntries(JUR.map(j=>[j.id,j.name]));
 const ACPART = {}; (AC.parts||[]).forEach(p=>{ ACPART[p.id]=p.name; });
 const AC_DEF = {jur:["kr","us","ca","eu","in"], fn:["sso","cookie","xfer"]};
-const acState = {jur:new Set(AC_DEF.jur), fn:new Set(AC_DEF.fn), part:"all"};
+const acState = {jur:new Set(AC_DEF.jur), fn:new Set(AC_DEF.fn), part:"all", kind:"all"};
+const ACKIND = [["all","전체 요건"],["common","글로벌 공통"],["branch","국가별 분기"]];
 
 function acEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function acPri(p){ return (AC.pri||{})[p]||p; }
@@ -2796,6 +2900,7 @@ function acSync(){
     inp.checked = acState.fn.has(inp.dataset.cond);
   });
   document.querySelectorAll("#acParts .acpart").forEach(b=>b.setAttribute("aria-pressed", b.dataset.part===acState.part?"true":"false"));
+  document.querySelectorAll("#acKind .cspill").forEach(b=>b.setAttribute("aria-pressed", b.dataset.ackind===acState.kind?"true":"false"));
   const jc=$("#acJurCount"); if(jc) jc.textContent=acState.jur.size+"개국 선택";
 }
 
@@ -2821,10 +2926,9 @@ function acSumHTML(){
     '<span class="acs must"><b>'+n.must+'</b>출시 전 필수</span>'+
     '<span class="acs"><b>'+n.ops+'</b>운영</span>'+
     '<span class="acs risk"><b>'+n.risk+'</b>고위험</span>'+
-    '<span class="acs"><b>'+n.common+'</b>공통</span>'+
-    '<span class="acs"><b>'+n.branch+'</b>국가 분기</span>'+
-    '</div>'+
-    '<p class="acban"><span class="bl">글로벌 공통 기준</span><span>'+acBanner()+
+    '<button class="acs kjump'+(acState.kind==="common"?" on":"")+'" type="button" data-ackind="common" title="글로벌 공통 요건만 보기"><b>'+n.common+'</b>공통</button>'+
+    '<button class="acs kjump'+(acState.kind==="branch"?" on":"")+'" type="button" data-ackind="branch" title="국가별 분기 요건만 보기"><b>'+n.branch+'</b>국가 분기</button>'+
+    '</div>'+    '<p class="acban"><span class="bl">글로벌 공통 기준</span><span>'+acBanner()+
     ' — 아래 <b>국가 분기</b> 블록은 이 기준으로 덮이지 않아 국가별로 따로 구현해야 하는 항목입니다.</span></p></div>';
   return h;
 }
@@ -2841,11 +2945,21 @@ function acCardHTML(r){
   if(r.note) h+='<p class="acnote2"><b>확인</b> '+acEsc(r.note)+'</p>';
   return h+'</article>';
 }
+function acKindHTML(s){
+  const box=$("#acKind"); if(!box) return;
+  const cnt={all:s.common.length+s.branch.length, common:s.common.length, branch:s.branch.length};
+  box.innerHTML=ACKIND.map(k=>'<button class="cspill" type="button" data-ackind="'+k[0]+'" aria-pressed="'+(acState.kind===k[0])+'">'+
+    (k[0]==="all"?'':'<span class="kdot '+k[0]+'" aria-hidden="true"></span>')+
+    '<span class="pn">'+k[1]+'</span><span class="n">'+cnt[k[0]]+'</span></button>').join("");
+  const t=$("#acKindTotal"); if(t) t.textContent=cnt.all+"건";
+}
 function renderAcct(){
   if(!$("#acct")) return;
   acSync();
   $("#acSum").innerHTML=acSumHTML();
   const s=acPicked();
+  acKindHTML(s);
+  const showC = acState.kind!=="branch", showB = acState.kind!=="common";
   let h="";
   if(!s.sel.length){
     h='<div class="acempty"><b>대상 국가를 하나 이상 고르세요.</b><br>국가와 기능 조건을 고르면 그 조건에 걸리는 법적·기획·개발 요건이 자동으로 추려집니다.</div>';
@@ -2853,21 +2967,25 @@ function renderAcct(){
     if(!s.common.length && !s.branch.length){
       h='<div class="acempty"><b>이 조건 조합에는 해당하는 요건이 없습니다.</b><br>기능 조건을 하나 이상 켜거나 담당 파트 필터를 ‘전체’로 바꿔 보세요.</div>';
     }else{
-      if(s.common.length){
-        h+='<div class="acgh common"><h3><span class="ack">공통</span> 글로벌 공통 기준 — 단일 UI·정책으로 통일</h3>'+
+      if(showC && s.common.length){
+        h+='<div class="acgh common"><h3><span class="ack k-common">공통</span> 글로벌 공통 기준 — 단일 UI·정책으로 통일</h3>'+
            '<p>여러 국가를 함께 운영할 때 이 기준 하나로 커버되는 항목입니다. 국가별 조문이 달라도 구현은 하나로 갑니다.</p>'+
            '<span class="acn">'+s.common.length+'건</span></div>';
         h+=s.common.map(acCardHTML).join("");
       }
-      JUR.forEach(j=>{
+      if(showB) JUR.forEach(j=>{
         if(!acState.jur.has(j.id)) return;
         const list=s.branch.filter(r=>r.j===j.id);
         if(!list.length) return;
-        h+='<div class="acgh"><h3>'+FLAG(j.id)+acEsc(j.name)+' <span class="ack">분기</span></h3>'+
+        h+='<div class="acgh bgh"><h3>'+FLAG(j.id)+acEsc(j.name)+' <span class="ack k-branch">분기</span></h3>'+
            '<p>'+acEsc(j.law)+' — 이 국가에서만 추가로 구현하거나 문서로 남겨야 하는 항목입니다.</p>'+
            '<span class="acn">'+list.length+'건</span></div>';
         h+=list.map(acCardHTML).join("");
       });
+      if(acState.kind==="common" && !s.common.length)
+        h='<div class="acempty"><b>이 조합에는 글로벌 공통 항목이 없습니다.</b><br>모든 요건이 국가별 분기입니다. 왼쪽에서 ‘국가별 분기’를 골라 보세요.</div>';
+      if(acState.kind==="branch" && !s.branch.length)
+        h='<div class="acempty"><b>이 조합에는 국가별 분기 항목이 없습니다.</b><br>고른 국가에 공통 기준만 적용됩니다. 왼쪽에서 ‘글로벌 공통’을 골라 보세요.</div>';
     }
   }
   $("#acWrap").innerHTML=h;
@@ -2996,8 +3114,19 @@ $("#acDoc").addEventListener("click",()=>{
 });
 $("#acPrint").addEventListener("click",()=>window.print());
 $("#acReset").addEventListener("click",()=>{
-  acState.jur=new Set(AC_DEF.jur); acState.fn=new Set(AC_DEF.fn); acState.part="all";
+  acState.jur=new Set(AC_DEF.jur); acState.fn=new Set(AC_DEF.fn); acState.part="all"; acState.kind="all";
   renderAcct(); toast("조건을 기본값(주요 5개국 · SSO·쿠키·국외이전)으로 되돌렸습니다");
+});
+/* 구분(공통/분기) 사이드바 — 클릭으로 목록 필터 */
+$("#acKind").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-ackind]"); if(!b) return;
+  acState.kind=b.dataset.ackind; renderAcct();
+  const top=$("#acWrap"); if(top) window.scrollTo({top:top.getBoundingClientRect().top+window.scrollY-70, behavior:"smooth"});
+});
+/* 요약 배지에서도 같은 구분으로 바로 걸러 보기 */
+$("#acSum").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-ackind]"); if(!b) return;
+  acState.kind=acState.kind===b.dataset.ackind?"all":b.dataset.ackind; renderAcct();
 });
 
 /* ---------------- AI 규제 탭 ---------------- */
